@@ -4,6 +4,22 @@ A persistent, reorderable video queue for YouTube, as a Chrome extension.
 
 YouTube's built-in queue disappears when you close the tab and only lives in the miniplayer. DaQueue gives you a real queue. It survives browser restarts, sits beside the video you're watching, and plays the next video when the current one ends.
 
+![DaQueue panel on a YouTube watch page](docs/screenshots/watch-page.png)
+
+## Screenshots
+
+| Queue panel (dark) | Queue panel (light) |
+|---|---|
+| ![Queue panel in dark theme](docs/screenshots/panel-dark.png) | ![Queue panel in light theme](docs/screenshots/panel-light.png) |
+
+| Toolbar popup (dark) | Toolbar popup (light) |
+|---|---|
+| ![Toolbar popup in dark theme](docs/screenshots/popup-dark.png) | ![Toolbar popup in light theme](docs/screenshots/popup-light.png) |
+
+**Add to queue** and **Play next** on any thumbnail. Labels slide out on hover:
+
+![Add to queue and Play next buttons on a thumbnail](docs/screenshots/thumbnail-buttons.png)
+
 ## Features
 
 - **Add from anywhere on YouTube.** Hover a thumbnail and click **Add to queue** or **Play next**. You can also use the right-click menu on any video link, or YouTube's own "Add to queue" option, which DaQueue takes over.
