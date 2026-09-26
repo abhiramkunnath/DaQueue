@@ -1,0 +1,47 @@
+{
+  "manifest_version": 3,
+  "name": "DaQueue",
+  "version": "1.0.0",
+  "description": "Persistent, reorderable video queue for YouTube.",
+  "minimum_chrome_version": "111",
+  "homepage_url": "https://github.com/abhiramkunnath/DaQueue",
+  "permissions": ["storage", "contextMenus"],
+  "host_permissions": ["*://www.youtube.com/*", "https://i.ytimg.com/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://www.youtube.com/*"],
+      "js": ["ui/queue-view.js", "content/content.js"],
+      "css": ["ui/queue-view.css", "content/content.css"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["*://www.youtube.com/*"],
+      "js": ["content/bridge.js"],
+      "world": "MAIN",
+      "run_at": "document_start"
+    }
+  ],
+  "action": {
+    "default_title": "DaQueue",
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "commands": {
+    "play-next": {
+      "suggested_key": { "default": "Alt+Shift+N" },
+      "description": "Play next video in queue"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

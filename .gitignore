@@ -1,0 +1,11 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# Packaged builds and signing keys: never commit a .pem
+*.zip
+*.crx
+*.pem
