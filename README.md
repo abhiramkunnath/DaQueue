@@ -28,9 +28,11 @@ YouTube's built-in queue disappears when you close the tab and only lives in the
 |---|---|
 | ![Queue panel in dark theme](docs/screenshots/panel-dark.png) | ![Queue panel in light theme](docs/screenshots/panel-light.png) |
 
-| Toolbar popup (dark) | Toolbar popup (light) |
-|---|---|
-| ![Toolbar popup in dark theme](docs/screenshots/popup-dark.png) | ![Toolbar popup in light theme](docs/screenshots/popup-light.png) |
+**Toolbar popup:** manage the queue from any tab, with play/pause and next controls for the current video:
+
+<p align="center">
+  <img src="docs/screenshots/popup-in-browser.png" alt="DaQueue popup open from the Chrome toolbar over a YouTube watch page" width="640">
+</p>
 
 **Add to queue** and **Play next** on any thumbnail. Labels slide out on hover:
 
