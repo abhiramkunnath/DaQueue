@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <title>DaQueue</title>
+  <rect x="5.12" y="5.12" width="117.76" height="117.76" rx="25.6" fill="#FF0033"/>
+  <g fill="#fff">
+    <rect x="25.6" y="30.72" width="53.76" height="11.52"/>
+    <rect x="25.6" y="51.2" width="53.76" height="11.52"/>
+    <rect x="25.6" y="71.68" width="28.16" height="11.52"/>
+    <polygon points="66.56,66.56 66.56,102.4 102.4,84.48"/>
+  </g>
+</svg>

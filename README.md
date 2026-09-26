@@ -1,6 +1,22 @@
-# DaQueue
+<p align="center">
+  <img src="docs/branding/banner.png" alt="DaQueue: a persistent, reorderable video queue for YouTube" width="100%">
+</p>
 
-A persistent, reorderable video queue for YouTube, as a Chrome extension.
+<h1 align="center">
+  <img src="docs/branding/icon.svg" alt="" width="40" height="40" align="top">
+  DaQueue
+</h1>
+
+<p align="center">
+  A persistent, reorderable video queue for YouTube, as a Chrome extension.
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Manifest-V3-ff0033" alt="Manifest V3">
+  <img src="https://img.shields.io/badge/Chrome-111%2B-4285F4?logo=googlechrome&logoColor=white" alt="Chrome 111+">
+  <img src="https://img.shields.io/badge/build-none%20needed-2ea44f" alt="No build step">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
+</p>
 
 YouTube's built-in queue disappears when you close the tab and only lives in the miniplayer. DaQueue gives you a real queue. It survives browser restarts, sits beside the video you're watching, and plays the next video when the current one ends.
 
