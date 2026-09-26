@@ -1,0 +1,65 @@
+/* ---------- Thumbnail "add to queue" button ---------- */
+
+.daq-thumb-host {
+  position: relative;
+}
+
+.daq-thumb-actions {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+
+.daq-thumb-host:hover .daq-thumb-actions,
+.daq-thumb-actions:focus-within {
+  opacity: 1;
+}
+
+.daq-add-btn {
+  height: 28px;
+  padding: 0 5px;
+  border: 0;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font: 500 12px/1 "Roboto", "Arial", sans-serif;
+  white-space: nowrap;
+}
+
+.daq-add-btn:hover {
+  background: #000;
+}
+
+.daq-add-btn .daq-svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Label slides out on hover, like YouTube's "Watch later" / "Add to queue" */
+.daq-add-label {
+  max-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    max-width 0.2s cubic-bezier(0.2, 0, 0, 1),
+    opacity 0.15s,
+    margin 0.2s;
+}
+
+.daq-add-btn:hover .daq-add-label,
+.daq-add-btn:focus-visible .daq-add-label {
+  max-width: 120px;
+  opacity: 1;
+  margin: 0 3px 0 6px;
+}
+

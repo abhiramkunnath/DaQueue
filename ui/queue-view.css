@@ -1,0 +1,549 @@
+/* Shared queue UI styles: used by the in-page panel and the toolbar popup. */
+
+.daq-svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+  flex: none;
+}
+
+/* ---------- Theme tokens ----------
+   YouTube sets html[dark] in dark mode (including "Use device theme" when the
+   OS is dark). Toggling it re-themes everything live, with no JS needed. */
+
+#daqueue-panel,
+.daq-toast {
+  --daq-text: #0f0f0f;
+  --daq-text-2: #606060;
+  --daq-border: rgba(0, 0, 0, 0.1);
+  --daq-chip: rgba(0, 0, 0, 0.05);
+  --daq-chip-hover: rgba(0, 0, 0, 0.1);
+  --daq-accent: #065fd4;
+  --daq-bg: #fff;
+  --daq-switch-off: #909090;
+  --daq-knob: #fff;
+  /* Thumbnail-tinted highlights: JS sets hue/sat per card, theme sets
+     saturation multiplier + lightness. Light = vivid, dark = muted. */
+  --daq-sat-k: 1.5;
+  --daq-hover-l: 91%;
+  --daq-active-l: 86%;
+}
+
+html[dark] #daqueue-panel,
+html[dark] .daq-toast {
+  --daq-text: #f1f1f1;
+  --daq-text-2: #aaa;
+  --daq-border: rgba(255, 255, 255, 0.2);
+  --daq-chip: rgba(255, 255, 255, 0.1);
+  --daq-chip-hover: rgba(255, 255, 255, 0.2);
+  --daq-accent: #3ea6ff;
+  --daq-bg: #0f0f0f;
+  --daq-switch-off: #717171;
+  --daq-knob: #f1f1f1;
+  --daq-sat-k: 0.5;
+  --daq-hover-l: 16%;
+  --daq-active-l: 20%;
+  color-scheme: dark;
+}
+
+/* ---------- Queue panel ---------- */
+
+#daqueue-panel {
+  color-scheme: light;
+  font-family: "Roboto", "Arial", sans-serif;
+  color: var(--daq-text);
+  background: var(--daq-bg);
+  border: 1px solid var(--daq-border);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.daq-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px 8px 4px;
+  background: var(--daq-chip);
+}
+
+.daq-heading {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.daq-title {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 22px;
+}
+
+.daq-sub {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--daq-text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.daq-icon-btn {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--daq-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex: none;
+}
+
+.daq-icon-btn:hover {
+  background: var(--daq-chip-hover);
+}
+
+.daq-collapse .daq-svg {
+  transition: transform 0.15s;
+  transform: rotate(180deg);
+}
+
+.daq-collapsed .daq-collapse .daq-svg {
+  transform: rotate(0deg);
+}
+
+.daq-collapsed .daq-body {
+  display: none;
+}
+
+/* Auto-advance switch */
+.daq-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--daq-text-2);
+  cursor: pointer;
+  user-select: none;
+  flex: none;
+}
+
+.daq-toggle input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.daq-switch {
+  position: relative;
+  width: 34px;
+  height: 14px;
+  border-radius: 7px;
+  background: var(--daq-switch-off);
+  transition: background 0.15s;
+}
+
+.daq-switch::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: -2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--daq-knob);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  transition: transform 0.15s, background 0.15s;
+}
+
+.daq-toggle input:checked + .daq-switch {
+  background: color-mix(in srgb, var(--daq-accent) 50%, transparent);
+}
+
+.daq-toggle input:checked + .daq-switch::after {
+  transform: translateX(18px);
+  background: var(--daq-accent);
+}
+
+.daq-toggle input:focus-visible + .daq-switch {
+  outline: 2px solid var(--daq-accent);
+  outline-offset: 4px;
+}
+
+/* Action pills */
+.daq-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 12px 4px;
+}
+
+.daq-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px 0 8px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--daq-chip);
+  color: var(--daq-text);
+  font: 500 13px/1 "Roboto", "Arial", sans-serif;
+  cursor: pointer;
+}
+
+.daq-pill .daq-svg {
+  width: 20px;
+  height: 20px;
+}
+
+.daq-pill:hover:not(:disabled) {
+  background: var(--daq-chip-hover);
+}
+
+.daq-pill:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.daq-clear.daq-confirm {
+  background: #cc0000;
+  color: #fff;
+}
+
+/* List */
+.daq-list {
+  position: relative; /* offsetTop reference for drag math */
+  list-style: none;
+  margin: 0;
+  padding: 0 0 8px;
+  max-height: 420px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.daq-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 8px;
+  padding: 6px;
+  border-radius: 12px;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background-color 0.15s,
+    transform 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.daq-item:hover {
+  background: var(--daq-chip);
+}
+
+/* YouTube-style: highlight takes the thumbnail's dominant hue */
+.daq-item.daq-tinted:hover {
+  background: hsl(var(--daq-h) calc(var(--daq-s) * var(--daq-sat-k) * 1%) var(--daq-hover-l));
+}
+
+/* ---- Drag to reorder ---- */
+
+/* Grabbed card: follows the pointer (no transform transition), floats above siblings */
+.daq-item.daq-lifted,
+.daq-item.daq-lifted:hover {
+  position: relative;
+  z-index: 2;
+  cursor: grabbing;
+  background: linear-gradient(var(--daq-chip), var(--daq-chip)) var(--daq-bg);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+  opacity: 0.85;
+  transition:
+    background-color 0.15s,
+    box-shadow 0.2s,
+    opacity 0.15s;
+}
+
+.daq-item.daq-tinted.daq-lifted {
+  background: hsl(var(--daq-h) calc(var(--daq-s) * var(--daq-sat-k) * 1%) var(--daq-hover-l));
+}
+
+/* On release: glide into the slot and drop the shadow */
+.daq-item.daq-lifted.daq-settling {
+  box-shadow: none;
+  opacity: 1;
+  transition:
+    transform 0.2s cubic-bezier(0.2, 0, 0, 1),
+    box-shadow 0.2s,
+    opacity 0.2s;
+}
+
+/* While sorting, keep index numbers visible (they renumber live) instead of the grip */
+.daq-sorting .daq-item:hover .daq-index {
+  display: inline;
+}
+
+.daq-sorting .daq-item:hover .daq-grip .daq-svg {
+  display: none;
+}
+
+.daq-lifted .daq-index {
+  color: var(--daq-text);
+  font-weight: 500;
+}
+
+/* While sorting, siblings don't show hover highlight */
+.daq-sorting .daq-item:not(.daq-lifted):hover {
+  background: transparent;
+}
+
+.daq-sorting,
+.daq-sorting * {
+  cursor: grabbing !important;
+}
+
+.daq-sorting .daq-remove {
+  visibility: hidden;
+}
+
+/* Used for one frame after a drop to snap transforms away without animating */
+.daq-no-anim .daq-item {
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .daq-item,
+  .daq-item.daq-lifted.daq-settling {
+    transition: background-color 0.15s;
+  }
+}
+
+/* Index number; swaps to a drag grip on hover like YouTube's playlist panel */
+.daq-grip {
+  width: 24px;
+  display: flex;
+  justify-content: center;
+  color: var(--daq-text-2);
+  flex: none;
+  cursor: grab;
+}
+
+.daq-index {
+  font-size: 12px;
+}
+
+.daq-grip .daq-svg {
+  display: none;
+  width: 16px;
+  height: 16px;
+}
+
+.daq-item:hover .daq-index {
+  display: none;
+}
+
+.daq-item:hover .daq-grip .daq-svg {
+  display: block;
+}
+
+.daq-thumb {
+  width: 100px;
+  height: 56px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--daq-chip);
+  flex: none;
+}
+
+.daq-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.daq-item-title {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.daq-item-channel {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--daq-text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.daq-remove {
+  opacity: 0;
+}
+
+.daq-item:hover .daq-remove,
+.daq-remove:focus-visible {
+  opacity: 1;
+}
+
+/* Section labels ("Now playing" / "Up next") */
+.daq-section {
+  padding: 12px 16px 6px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: var(--daq-text-2);
+}
+
+/* Now playing row: not part of the queue, so no drag/click affordances */
+.daq-now {
+  padding-bottom: 4px;
+}
+
+.daq-item.daq-now-item,
+.daq-item.daq-now-item:hover {
+  cursor: default;
+  background: var(--daq-chip);
+}
+
+.daq-item.daq-now-item.daq-tinted,
+.daq-item.daq-now-item.daq-tinted:hover {
+  background: hsl(var(--daq-h) calc(var(--daq-s) * var(--daq-sat-k) * 1%) var(--daq-active-l));
+}
+
+.daq-now-item .daq-item-title {
+  color: var(--daq-text);
+}
+
+/* Animated "playing" bars; freeze when the video is paused */
+.daq-eq {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 14px;
+}
+
+.daq-eq span {
+  width: 3px;
+  height: 100%;
+  border-radius: 1px;
+  background: var(--daq-accent);
+  transform-origin: bottom;
+  animation: daq-eq 0.9s ease-in-out infinite;
+}
+
+.daq-eq span:nth-child(2) {
+  animation-delay: -0.3s;
+}
+
+.daq-eq span:nth-child(3) {
+  animation-delay: -0.6s;
+}
+
+.daq-paused .daq-eq span {
+  animation-play-state: paused;
+}
+
+@keyframes daq-eq {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .daq-eq span {
+    animation: none;
+    transform: scaleY(0.7);
+  }
+}
+
+.daq-empty {
+  padding: 16px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--daq-text-2);
+}
+
+/* ---------- Toast (inverted theme, like YouTube's) ---------- */
+
+.daq-toast {
+  position: fixed;
+  left: 24px;
+  bottom: 24px;
+  z-index: 9999;
+  max-width: 360px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: var(--daq-text);
+  color: var(--daq-bg);
+  font: 400 14px/20px "Roboto", "Arial", sans-serif;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+}
+
+.daq-toast.daq-show {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- Now-playing mini controls (popup) ---------- */
+
+.daq-ctrls {
+  display: flex;
+  gap: 2px;
+  flex: none;
+}
+
+.daq-ctrl {
+  width: 32px;
+  height: 32px;
+}
+
+.daq-ctrl .daq-svg {
+  width: 22px;
+  height: 22px;
+}
+
+.daq-ctrl:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.daq-ctrl:disabled:hover {
+  background: transparent;
+}
+
+/* ---------- Popup mode: fills the popup, always expanded ---------- */
+
+#daqueue-panel.daq-popup {
+  border: 0;
+  border-radius: 0;
+  margin: 0;
+}
+
+.daq-popup .daq-header {
+  padding-left: 16px;
+}
+
+.daq-popup .daq-heading {
+  cursor: default;
+}
+
+.daq-popup .daq-list {
+  max-height: 340px;
+}
+
+.daq-empty .daq-pill {
+  margin-top: 12px;
+}

@@ -1,0 +1,29 @@
+/* Popup shell. The queue view itself is styled by ui/queue-view.css;
+   theme comes from html[dark], set by popup.js to match YouTube's last-seen theme. */
+
+html {
+  color-scheme: light;
+}
+
+html[dark] {
+  color-scheme: dark;
+}
+
+body {
+  width: 400px;
+  margin: 0;
+  background: #fff;
+  font-family: "Roboto", "Arial", sans-serif;
+}
+
+html[dark] body {
+  background: #0f0f0f;
+}
+
+/* Toast spans the popup's bottom edge instead of the page corner */
+.daq-toast {
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  max-width: none;
+}
