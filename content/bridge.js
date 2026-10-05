@@ -6,8 +6,8 @@
 //     hover button) into DaQueue. Detection reads Polymer element data, which the
 //     isolated content script can't see — so it works in any UI language.
 // Talks to content.js via window.postMessage:
-//   in:  { source: 'daqueue', type: 'navigate' | 'state' }
-//   out: { source: 'daqueue-bridge', type: 'playNext' | 'add' | 'ended' }
+//   in:  { source: 'daqueue', type: 'navigate' | 'state' | 'getHeatmap' | 'seek' }
+//   out: { source: 'daqueue-bridge', type: 'playNext' | 'add' | 'ended' | 'heatmap' }
 (() => {
   if (window.__daqueueBridge) return;
   window.__daqueueBridge = true;
@@ -88,6 +88,33 @@
   }
   for (const type of ['yt-navigate-finish', 'yt-player-updated']) document.addEventListener(type, hookPlayer);
   setInterval(hookPlayer, 2000); // cheap no-op once hooked; covers late player init
+
+  // ---------- 2c. "Most replayed" heatmap (for Jump ahead) ----------
+  // Lives in the watch-page data: ytInitialData on first load, the yt-navigate-finish
+  // response after SPA navigations. Only readable from the main world.
+
+  let lastNavResponse = null;
+  document.addEventListener('yt-navigate-finish', (e) => {
+    lastNavResponse = e.detail?.response?.response || null;
+  });
+
+  function heatmapFor(id) {
+    for (const data of [lastNavResponse, window.ytInitialData]) {
+      if (!data) continue;
+      const vid = data.currentVideoEndpoint?.watchEndpoint?.videoId;
+      if (vid && vid !== id) continue;
+      for (const m of data.frameworkUpdates?.entityBatchUpdate?.mutations || []) {
+        const list = m?.payload?.macroMarkersListEntity?.markersList;
+        if (list?.markerType !== 'MARKER_TYPE_HEATMAP' || !Array.isArray(list.markers)) continue;
+        return list.markers.map((k) => ({
+          start: +k.startMillis / 1000,
+          dur: +k.durationMillis / 1000,
+          v: +k.intensityScoreNormalized || 0,
+        }));
+      }
+    }
+    return [];
+  }
 
   // ---------- 3. Native "Add to queue" → DaQueue ----------
 
@@ -176,6 +203,13 @@
     if (e.source !== window || e.data?.source !== 'daqueue') return;
     if (e.data.type === 'navigate' && ID_RE.test(e.data.videoId || '')) {
       navigate(e.data.videoId);
+    } else if (e.data.type === 'seek' && Number.isFinite(e.data.time)) {
+      // Seek the way YouTube's own UI does; poking <video>.currentTime can stall its streaming.
+      const player = document.querySelector('ytd-watch-flexy #movie_player');
+      if (typeof player?.seekTo === 'function') player.seekTo(e.data.time, true);
+      else if (player?.querySelector('video')) player.querySelector('video').currentTime = e.data.time;
+    } else if (e.data.type === 'getHeatmap' && ID_RE.test(e.data.videoId || '')) {
+      post({ type: 'heatmap', videoId: e.data.videoId, markers: heatmapFor(e.data.videoId) });
     } else if (e.data.type === 'state') {
       const next = !!e.data.hasQueue;
       if (next !== hasQueue) {
