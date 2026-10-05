@@ -60,9 +60,9 @@ YouTube's built-in queue disappears when you close the tab and only lives in the
 
 ## Installation
 
-DaQueue isn't on the Chrome Web Store yet. Install it from source:
+DaQueue isn't on the Chrome Web Store yet. Install it as an unpacked extension:
 
-1. Download this repository, either with **Code → Download ZIP** and unzip it, or by cloning it:
+1. Download **DaQueue-vX.Y.Z.zip** from the [latest release](https://github.com/abhiramkunnath/DaQueue/releases/latest) and unzip it. Or clone the repository:
    ```sh
    git clone https://github.com/abhiramkunnath/DaQueue.git
    ```
@@ -71,7 +71,7 @@ DaQueue isn't on the Chrome Web Store yet. Install it from source:
 4. Click **Load unpacked** and select the `DaQueue` folder, the one that contains `manifest.json`.
 5. Reload any YouTube tabs you already had open.
 
-To update, pull or download the new version, click the reload icon on DaQueue's card in `chrome://extensions`, then reload your YouTube tabs.
+To update, download the new release (or `git pull`), click the reload icon on DaQueue's card in `chrome://extensions`, then reload your YouTube tabs.
 
 Requires Chrome 111 or newer. Other Chromium browsers, such as Edge and Brave, should work but haven't been tested.
 
