@@ -12,7 +12,8 @@
    OS is dark). Toggling it re-themes everything live, with no JS needed. */
 
 #daqueue-panel,
-.daq-toast {
+.daq-toast,
+.daq-scope {
   --daq-text: #0f0f0f;
   --daq-text-2: #606060;
   --daq-border: rgba(0, 0, 0, 0.1);
@@ -30,7 +31,8 @@
 }
 
 html[dark] #daqueue-panel,
-html[dark] .daq-toast {
+html[dark] .daq-toast,
+html[dark] .daq-scope {
   --daq-text: #f1f1f1;
   --daq-text-2: #aaa;
   --daq-border: rgba(255, 255, 255, 0.2);

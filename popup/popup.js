@@ -73,7 +73,22 @@
       if (res) view.setPaused(res.paused);
     },
   });
-  document.body.append(view.el);
+  // ---- tabs: Queue | Skipping ----
+  const skipUI = buildSkipSettings((skip) => send({ type: 'setSettings', patch: { skip } }));
+  const tabBar = el('div', { class: 'daq-tabs', role: 'tablist' });
+  const panes = { queue: view.el, skip: skipUI.el };
+  for (const [id, label] of [['queue', 'Queue'], ['skip', 'Skipping']]) {
+    const tab = el('button', { class: 'daq-tab', type: 'button', role: 'tab', 'data-tab': id, text: label });
+    tab.addEventListener('click', () => selectTab(id));
+    tabBar.append(tab);
+  }
+  function selectTab(id) {
+    for (const tab of tabBar.children) tab.setAttribute('aria-selected', String(tab.dataset.tab === id));
+    for (const [key, pane] of Object.entries(panes)) pane.hidden = key !== id;
+  }
+  document.body.classList.add('daq-scope');
+  document.body.append(tabBar, view.el, skipUI.el);
+  selectTab('queue');
 
   // ---- state sync ----
   const [{ queue = [] }, { settings }] = await Promise.all([
@@ -81,11 +96,13 @@
     chrome.storage.local.get('settings'),
   ]);
   view.setState({ queue, settings: { ...DEFAULT_SETTINGS, ...settings } });
+  skipUI.render(window.DaQueueSkip.resolve(settings));
 
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area === queueArea && changes.queue) view.setState({ queue: changes.queue.newValue || [] });
     if (area === 'local' && changes.settings) {
       view.setState({ settings: { ...DEFAULT_SETTINGS, ...changes.settings.newValue } });
+      skipUI.render(window.DaQueueSkip.resolve(changes.settings.newValue));
     }
     if (area === 'local' && changes.ytTheme) applyTheme(changes.ytTheme.newValue);
   });
@@ -100,5 +117,74 @@
   if (ytTab) {
     pollNow();
     setInterval(pollNow, 1000);
+  }
+
+  // ---- Skipping tab ----
+  function buildSkipSettings(save) {
+    const SK = window.DaQueueSkip;
+    let cfg = SK.resolve();
+    const commit = (next) => {
+      cfg = next;
+      render(cfg);
+      save(cfg);
+    };
+
+    const master = el('input', { type: 'checkbox' });
+    master.addEventListener('change', () => commit({ ...cfg, enabled: master.checked }));
+    const header = el('div', { class: 'daq-header' }, [
+      el('div', { class: 'daq-heading' }, [
+        el('div', { class: 'daq-title', text: 'Segment skipping' }),
+        el('div', { class: 'daq-sub', text: 'Sponsors, intros and more' }),
+      ]),
+      el('label', { class: 'daq-toggle', title: 'Turn segment skipping on or off' }, [master, el('span', { class: 'daq-switch' })]),
+    ]);
+
+    const MODE_LABELS = { auto: 'Auto', button: 'Button', off: 'Off' };
+    const rows = SK.CATEGORIES.map((cat) => {
+      const buttons = SK.MODES.map((m) => {
+        const b = el('button', { type: 'button', 'data-mode': m, text: MODE_LABELS[m] });
+        b.addEventListener('click', () => commit({ ...cfg, categories: { ...cfg.categories, [cat.id]: m } }));
+        return b;
+      });
+      const dot = el('span', { class: 'daq-cat-dot' });
+      dot.style.background = cat.color;
+      const row = el('div', { class: 'daq-cat' }, [
+        dot,
+        el('div', { class: 'daq-cat-text' }, [el('div', { class: 'daq-cat-label', text: cat.label }), el('div', { class: 'daq-cat-desc', text: cat.desc })]),
+        el('div', { class: 'daq-seg-ctl', role: 'radiogroup', 'aria-label': cat.label }, buttons),
+      ]);
+      return { cat, row, buttons };
+    });
+
+    const jumpInput = el('input', { type: 'checkbox' });
+    jumpInput.addEventListener('change', () => commit({ ...cfg, jumpAhead: jumpInput.checked }));
+    const jumpDot = el('span', { class: 'daq-cat-dot' });
+    jumpDot.style.background = SK.HIGHLIGHT.color;
+    const jumpRow = el('div', { class: 'daq-cat' }, [
+      jumpDot,
+      el('div', { class: 'daq-cat-text' }, [
+        el('div', { class: 'daq-cat-label', text: 'Jump ahead' }),
+        el('div', { class: 'daq-cat-desc', text: 'Button to jump to the highlight or the most-replayed part' }),
+      ]),
+      el('label', { class: 'daq-toggle' }, [jumpInput, el('span', { class: 'daq-switch' })]),
+    ]);
+
+    const link = el('a', { href: 'https://sponsor.ajay.app', target: '_blank', rel: 'noopener', text: 'SponsorBlock' });
+    const credit = el('div', { class: 'daq-credit' }, ['Segment data from ', link, ' (CC BY-NC-SA 4.0), crowdsourced by its community.']);
+
+    const body = el('div', { class: 'daq-settings-body' }, [...rows.map((r) => r.row), jumpRow]);
+    const root = el('div', { class: 'daq-settings' }, [header, body, credit]);
+
+    function render(next) {
+      cfg = next;
+      master.checked = cfg.enabled;
+      jumpInput.checked = cfg.jumpAhead;
+      body.classList.toggle('daq-disabled', !cfg.enabled);
+      for (const { cat, buttons } of rows) {
+        for (const b of buttons) b.setAttribute('aria-pressed', String(cfg.categories[cat.id] === b.dataset.mode));
+      }
+    }
+    render(cfg);
+    return { el: root, render };
   }
 })();

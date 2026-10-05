@@ -38,6 +38,12 @@ YouTube's built-in queue disappears when you close the tab and only lives in the
 
 ![Add to queue and Play next buttons on a thumbnail](docs/screenshots/thumbnail-buttons.png)
 
+**Segment skipping (v2):** sponsors skip with an Undo notice, segments are marked on the progress bar, and Jump ahead takes you to the highlight. Choose what to skip in the popup's Skipping tab:
+
+| On the player | Skipping settings |
+|---|---|
+| ![Skipped self-promotion notice, coloured segment marks on the progress bar, and a Jump to highlight button](docs/screenshots/segment-skip.png) | ![Popup Skipping tab with Auto, Button and Off for each category](docs/screenshots/skip-settings.png) |
+
 ## Features
 
 - **Add from anywhere on YouTube.** Hover a thumbnail and click **Add to queue** or **Play next**. You can also use the right-click menu on any video link, or YouTube's own "Add to queue" option, which DaQueue takes over.
@@ -49,6 +55,8 @@ YouTube's built-in queue disappears when you close the tab and only lives in the
 - **Persistent.** The queue is saved locally and survives restarts until you play, remove or clear the videos.
 - **Incognito aware.** If you allow the extension in incognito, incognito windows get their own separate queue. It's kept in memory only and discarded when the last incognito window closes.
 - **Thumbnail-tinted highlights.** Hovering a queued video highlights it in that thumbnail's dominant colour, like YouTube does.
+- **Sponsor and segment skipping** *(new in v2)*. Sponsor reads are skipped automatically, with an **Undo**. Intros, outros, "like and subscribe" reminders and self-promotion get a **Skip** button instead. Coloured marks on the progress bar show where every segment is. Each category can be set to Auto, Button or Off.
+- **Jump ahead** *(new in v2)*. Like YouTube Premium's Jump ahead: a button jumps to the video's highlight, or to the next part most people replay.
 
 ## Installation
 
@@ -79,6 +87,10 @@ Requires Chrome 111 or newer. Other Chromium browsers, such as Edge and Brave, s
 | Reorder | Drag a card up or down. Press `Esc` to cancel a drag. |
 | Remove a video | Hover it → ✕ |
 | Clear everything | **Clear**, then **Clear all?** to confirm |
+| Skip a sponsor or segment | Sponsors skip on their own (click **Undo** to watch it). For other segments, click the **Skip …** button that appears on the player. |
+| Watch a segment anyway | Seek into it yourself: DaQueue won't skip a segment you chose to watch |
+| Jump to the good part | **Jump to highlight** / **Jump ahead** button on the player (shows with the controls) |
+| Change what gets skipped | Toolbar popup → **Skipping** tab |
 
 A video is removed from the queue once it starts playing from the queue.
 
@@ -100,13 +112,15 @@ You can change `Alt+Shift+N` at `chrome://extensions/shortcuts`.
 | `contextMenus` | The right-click **Add to DaQueue** and **Play next in DaQueue** entries |
 | `www.youtube.com` | Add the panel and buttons to YouTube pages, and look up video titles with YouTube's public oEmbed endpoint |
 | `i.ytimg.com` | Read thumbnail colours for the tinted highlights |
+| `sponsor.ajay.app` | Look up sponsor and segment times from SponsorBlock |
 
 ## Privacy
 
 DaQueue has no servers, analytics or tracking, and it doesn't use sync.
 
 - **Where your data lives:** your queue stays in your browser's local extension storage. Incognito queues are kept in memory only.
-- **Network requests:** the extension only contacts YouTube itself, to fetch video titles (`youtube.com/oembed`) and thumbnails (`i.ytimg.com`). These requests are sent without cookies.
+- **Network requests:** the extension contacts YouTube itself, to fetch video titles (`youtube.com/oembed`) and thumbnails (`i.ytimg.com`), and SponsorBlock (`sponsor.ajay.app`) for segment times. All requests are sent without cookies.
+- **SponsorBlock lookups are anonymous:** DaQueue sends only the first 4 characters of a hash of the video ID. SponsorBlock returns segments for every video sharing that prefix, and DaQueue picks out the right one locally, so SponsorBlock never learns which video you're watching. With segment skipping and Jump ahead both turned off, DaQueue makes no SponsorBlock requests at all.
 
 ## How it works
 
@@ -121,7 +135,10 @@ content/content.css  auto-advance, taking over the ⏭ button and Shift+N, and a
 content/bridge.js    Runs in the page's own JavaScript context, which it needs to trigger
                      YouTube's in-page navigation, handle media keys, detect when a video ends,
                      and redirect YouTube's native "Add to queue".
-popup/               The toolbar popup.
+content/skip.js      Segment skipping and Jump ahead: skip logic, player buttons, progress-bar marks.
+content/skip.css
+ui/skip-config.js    Skip categories, colours and defaults, shared with the popup's Skipping tab.
+popup/               The toolbar popup (Queue and Skipping tabs).
 ```
 
 The queue is a plain array in `chrome.storage`. Every open YouTube tab and the popup listen for storage changes, so they all stay in sync. The UI is built with DOM methods, never `innerHTML`, because YouTube enforces Trusted Types.
@@ -132,6 +149,8 @@ The queue is a plain array in `chrome.storage`. Every open YouTube tab and the p
 - **Desktop site only.** `m.youtube.com` and YouTube Music aren't supported.
 - **Next-button preview.** Hovering the player's ⏭ still shows YouTube's own suggestion, even though clicking it plays your queue.
 - **Playlists.** When you're watching a playlist and your queue isn't empty, the queue takes priority over the playlist's next video.
+- **Segment coverage depends on SponsorBlock.** Popular videos are almost always covered; brand-new or niche videos may have no segments yet. Anyone can contribute segments with the [SponsorBlock extension](https://sponsor.ajay.app).
+- **SponsorBlock extension installed?** DaQueue steps aside (no skipping, no marks) so the two don't skip the same segment twice. Jump ahead still works.
 - **Thumbnail buttons and inline previews.** If YouTube's inline preview starts playing over a thumbnail, it can cover the DaQueue buttons. Use the right-click menu or YouTube's own "Add to queue" instead.
 
 ## Troubleshooting
@@ -143,6 +162,10 @@ The queue is a plain array in `chrome.storage`. Every open YouTube tab and the p
 ## Contributing
 
 Issues and pull requests are welcome. There's no build step, so edit the files and reload the extension to test. When reporting a bug, include your Chrome version and the page where it happened. YouTube sometimes tests different layouts on different accounts.
+
+## Credits
+
+Sponsor and segment data comes from [SponsorBlock](https://sponsor.ajay.app), a crowdsourced project by Ajay Ramachandran and its contributors. The data is licensed [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). DaQueue uses it unmodified and non-commercially. The colour coding of segment categories follows SponsorBlock's defaults.
 
 ## License
 

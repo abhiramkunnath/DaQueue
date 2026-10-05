@@ -1,25 +1,47 @@
 {
   "manifest_version": 3,
   "name": "DaQueue",
-  "version": "1.0.0",
-  "description": "Persistent, reorderable video queue for YouTube.",
+  "version": "2.0.0",
+  "description": "Persistent, reorderable video queue for YouTube, plus sponsor and segment skipping.",
   "minimum_chrome_version": "111",
   "homepage_url": "https://github.com/abhiramkunnath/DaQueue",
-  "permissions": ["storage", "contextMenus"],
-  "host_permissions": ["*://www.youtube.com/*", "https://i.ytimg.com/*"],
+  "permissions": [
+    "storage",
+    "contextMenus"
+  ],
+  "host_permissions": [
+    "*://www.youtube.com/*",
+    "https://i.ytimg.com/*",
+    "https://sponsor.ajay.app/*"
+  ],
   "background": {
     "service_worker": "background.js"
   },
   "content_scripts": [
     {
-      "matches": ["*://www.youtube.com/*"],
-      "js": ["ui/queue-view.js", "content/content.js"],
-      "css": ["ui/queue-view.css", "content/content.css"],
+      "matches": [
+        "*://www.youtube.com/*"
+      ],
+      "js": [
+        "ui/queue-view.js",
+        "ui/skip-config.js",
+        "content/content.js",
+        "content/skip.js"
+      ],
+      "css": [
+        "ui/queue-view.css",
+        "content/content.css",
+        "content/skip.css"
+      ],
       "run_at": "document_idle"
     },
     {
-      "matches": ["*://www.youtube.com/*"],
-      "js": ["content/bridge.js"],
+      "matches": [
+        "*://www.youtube.com/*"
+      ],
+      "js": [
+        "content/bridge.js"
+      ],
       "world": "MAIN",
       "run_at": "document_start"
     }
@@ -35,7 +57,9 @@
   },
   "commands": {
     "play-next": {
-      "suggested_key": { "default": "Alt+Shift+N" },
+      "suggested_key": {
+        "default": "Alt+Shift+N"
+      },
       "description": "Play next video in queue"
     }
   },

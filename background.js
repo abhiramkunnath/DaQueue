@@ -140,6 +140,54 @@ async function computeThumbColor(id) {
   return { h: Math.round(hueDeg), s: Math.round(Math.min(Math.max(avgSat * 100, 25), 60)) };
 }
 
+// ---- Segment skipping: SponsorBlock lookup ----
+// Privacy: only the first 4 hex chars of sha256(videoId) are sent; SponsorBlock returns
+// segments for every video sharing that prefix and we pick ours out locally.
+// Data: https://sponsor.ajay.app, CC BY-NC-SA 4.0.
+const SB_API = 'https://sponsor.ajay.app/api/skipSegments';
+const SB_CATEGORIES = ['sponsor', 'selfpromo', 'interaction', 'intro', 'outro', 'preview', 'filler', 'music_offtopic', 'poi_highlight'];
+const SEGMENT_TTL = 10 * 60 * 1000;
+const segmentCache = new Map(); // id -> { at, segments }
+
+async function sha256Hex(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function getSegments(id) {
+  if (!ID_RE.test(id || '')) return [];
+  const hit = segmentCache.get(id);
+  if (hit && Date.now() - hit.at < SEGMENT_TTL) return hit.segments;
+  try {
+    const prefix = (await sha256Hex(id)).slice(0, 4);
+    const query =
+      `categories=${encodeURIComponent(JSON.stringify(SB_CATEGORIES))}` +
+      `&actionTypes=${encodeURIComponent(JSON.stringify(['skip', 'poi']))}`;
+    const res = await fetch(`${SB_API}/${prefix}?${query}`, { credentials: 'omit' });
+    let segments = [];
+    if (res.ok) {
+      const entry = (await res.json()).find((v) => v.videoID === id);
+      segments = (entry?.segments || [])
+        .filter((s) => Array.isArray(s.segment) && s.segment.length === 2)
+        .map((s) => ({
+          uuid: s.UUID,
+          category: s.category,
+          actionType: s.actionType,
+          start: +s.segment[0],
+          end: +s.segment[1],
+          videoDuration: +s.videoDuration || 0,
+        }))
+        .sort((a, b) => a.start - b.start);
+    } else if (res.status !== 404) {
+      return []; // server trouble: don't cache, try again next time
+    }
+    segmentCache.set(id, { at: Date.now(), segments });
+    return segments;
+  } catch {
+    return [];
+  }
+}
+
 async function setSettings(patch) {
   const { settings } = await chrome.storage.local.get('settings');
   const next = { ...DEFAULT_SETTINGS, ...settings, ...patch };
@@ -173,6 +221,7 @@ const handlers = {
     }),
   setSettings: (m) => setSettings(m.patch),
   color: (m) => thumbColor(m.id),
+  segments: (m) => getSegments(m.id),
 };
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
