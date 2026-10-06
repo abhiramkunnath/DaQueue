@@ -28,92 +28,128 @@ html[dark] body {
   max-width: none;
 }
 
-/* ---------- Layout: fixed height, so switching tabs never resizes the popup ---------- */
-
-html,
-body {
-  height: 580px;
-}
+/* ---------- Layout: popup sizes to its content, capped at 580px ----------
+   Every level is a shrinkable flex column, so when content is taller than the cap
+   only the queue list (or the settings pane) scrolls, never the whole popup. */
 
 body {
+  max-height: 580px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
-/* ---------- Tabs: YouTube-style chips ---------- */
+/* ---------- Tabs: YouTube channel-page style (text + sliding underline) ---------- */
 
 .daq-tabs {
+  position: relative;
   flex: none;
   display: flex;
-  gap: 8px;
-  padding: 12px 16px 4px;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--daq-border);
   background: var(--daq-bg);
-  font-family: "Roboto", "Arial", sans-serif;
 }
 
 .daq-tab {
-  height: 32px;
-  padding: 0 12px;
+  flex: 1;
+  height: 44px;
   border: 0;
-  border-radius: 8px;
-  background: var(--daq-chip);
-  color: var(--daq-text);
+  background: transparent;
+  color: var(--daq-text-2);
   font: 500 14px/1 "Roboto", "Arial", sans-serif;
   cursor: pointer;
-  transition:
-    background-color 0.2s,
-    color 0.2s;
+  transition: color 0.2s;
 }
 
-.daq-tab:hover {
-  background: var(--daq-chip-hover);
-}
-
+.daq-tab:hover,
 .daq-tab[aria-selected="true"] {
-  background: var(--daq-text);
-  color: var(--daq-bg);
+  color: var(--daq-text);
 }
 
 .daq-tab:focus-visible {
   outline: 2px solid var(--daq-accent);
-  outline-offset: 2px;
+  outline-offset: -4px;
+  border-radius: 6px;
 }
 
-/* ---------- Panes: stacked in one box so they can slide/cross-fade ---------- */
+.daq-tab-indicator {
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--daq-text);
+  transition:
+    transform 0.28s cubic-bezier(0.2, 0, 0, 1),
+    width 0.28s cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* ---------- Panes ---------- */
 
 .daq-panes {
   position: relative;
-  flex: 1;
+  flex: 0 1 auto;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .daq-pane {
-  position: absolute;
-  inset: 0;
-  overflow-y: auto;
-  scrollbar-width: thin;
+  flex: 0 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   background: var(--daq-bg);
 }
 
-/* Queue fills its pane; the list takes the remaining height */
+.daq-pane[hidden] {
+  display: none;
+}
+
+/* Outgoing pane during a switch: overlays the incoming one so it doesn't affect layout */
+.daq-pane.daq-leaving {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+
+/* Queue: shrinkable chain down to the list, which is the only thing that scrolls */
 .daq-pane > #daqueue-panel.daq-popup {
-  height: 100%;
+  flex: 0 1 auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
 }
 
 .daq-popup .daq-body {
-  flex: 1;
+  flex: 0 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
 }
 
-.daq-popup .daq-list {
-  flex: 1;
+.daq-popup .daq-body > * {
+  flex: none;
+}
+
+.daq-popup .daq-body > .daq-list {
+  flex: 0 1 auto;
   min-height: 0;
   max-height: none;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+/* Settings scroll inside their pane; the gutter is always reserved so width never jumps */
+.daq-pane > .daq-settings {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-gutter: stable;
 }
 
 /* ---------- Skipping settings ---------- */
@@ -129,7 +165,7 @@ body {
 }
 
 .daq-settings-body {
-  padding: 4px 8px 8px;
+  padding: 2px 8px 4px;
   transition: opacity 0.15s;
 }
 
@@ -142,7 +178,7 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px;
+  padding: 6px 8px;
   border-radius: 10px;
 }
 
@@ -170,8 +206,11 @@ body {
 
 .daq-cat-desc {
   font-size: 11.5px;
-  line-height: 15px;
+  line-height: 14px;
   color: var(--daq-text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Auto / Button / Off segmented control */
@@ -205,7 +244,7 @@ body {
 }
 
 .daq-credit {
-  padding: 4px 16px 14px;
+  padding: 2px 16px 12px;
   font-size: 11px;
   line-height: 15px;
   color: var(--daq-text-2);

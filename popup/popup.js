@@ -73,28 +73,48 @@
       if (res) view.setPaused(res.paused);
     },
   });
-  // ---- tabs: Queue | Skipping (YouTube-style chips, sliding crossfade) ----
+  // ---- tabs: Queue | Skipping ----
+  // YouTube channel-page style: text tabs with a sliding underline. On switch the panes
+  // slide/cross-fade and the popup height animates between the two panes' natural sizes.
   const skipUI = buildSkipSettings((skip) => send({ type: 'setSettings', patch: { skip } }));
   const TABS = [['queue', 'Queue'], ['skip', 'Skipping']];
   const tabBar = el('div', { class: 'daq-tabs', role: 'tablist' });
+  const indicator = el('div', { class: 'daq-tab-indicator', 'aria-hidden': 'true' });
   const panes = {
     queue: el('div', { class: 'daq-pane', role: 'tabpanel' }, view.el),
     skip: el('div', { class: 'daq-pane', role: 'tabpanel' }, skipUI.el),
   };
+  const panesEl = el('div', { class: 'daq-panes' }, [panes.queue, panes.skip]);
   for (const [id, label] of TABS) {
     const tab = el('button', { class: 'daq-tab', type: 'button', role: 'tab', 'data-tab': id, text: label });
     tab.addEventListener('click', () => selectTab(id));
     tabBar.append(tab);
   }
+  tabBar.append(indicator);
 
-  const SLIDE = 28; // px
+  const SLIDE = 24; // px
+  const DURATION = 260;
+  const EASE = 'cubic-bezier(0.2, 0, 0, 1)';
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   let currentTab = null;
+  let settle = null; // finishes an in-flight switch immediately
+
+  function placeIndicator(animate) {
+    const tab = tabBar.querySelector('.daq-tab[aria-selected="true"]');
+    if (!tab) return;
+    const inset = 24;
+    if (!animate) indicator.style.transition = 'none';
+    indicator.style.width = `${tab.offsetWidth - inset * 2}px`;
+    indicator.style.transform = `translateX(${tab.offsetLeft + inset}px)`;
+    if (!animate) {
+      void indicator.offsetWidth;
+      indicator.style.transition = '';
+    }
+  }
 
   function selectTab(id) {
     if (id === currentTab) return;
-    const order = TABS.map(([t]) => t);
-    const dir = currentTab ? Math.sign(order.indexOf(id) - order.indexOf(currentTab)) : 0;
+    settle?.();
     const prevId = currentTab;
     currentTab = id;
     try {
@@ -102,32 +122,48 @@
     } catch {
       /* storage unavailable: just don't remember the tab */
     }
-    for (const tab of tabBar.children) tab.setAttribute('aria-selected', String(tab.dataset.tab === id));
+    for (const tab of tabBar.querySelectorAll('.daq-tab')) tab.setAttribute('aria-selected', String(tab.dataset.tab === id));
+    placeIndicator(!!prevId && !reduceMotion);
 
     const next = panes[id];
-    next.hidden = false;
-    next.style.pointerEvents = '';
-    for (const [key, pane] of Object.entries(panes)) if (key !== id && key !== prevId) pane.hidden = true;
-    if (!prevId) return;
-
-    const prev = panes[prevId];
-    if (reduceMotion) {
-      prev.hidden = true;
+    const prev = prevId ? panes[prevId] : null;
+    if (!prev || reduceMotion) {
+      for (const [key, pane] of Object.entries(panes)) pane.hidden = key !== id;
       return;
     }
-    // Both panes are absolutely positioned in the same box, so they can cross-fade in place.
-    const timing = { duration: 240, easing: 'cubic-bezier(0.2, 0, 0, 1)' };
-    next.animate([{ opacity: 0, transform: `translateX(${dir * SLIDE}px)` }, { opacity: 1, transform: 'none' }], timing);
-    prev.style.pointerEvents = 'none';
-    prev
-      .animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: `translateX(${-dir * SLIDE}px)` }], timing)
-      .finished.then(() => {
-        if (currentTab !== prevId) prev.hidden = true;
-      }, () => {});
+
+    const order = TABS.map(([t]) => t);
+    const dir = Math.sign(order.indexOf(id) - order.indexOf(prevId));
+    const fromHeight = panesEl.offsetHeight;
+    // Outgoing pane becomes an overlay; the incoming one now defines the layout.
+    prev.classList.add('daq-leaving');
+    next.hidden = false;
+    const toHeight = panesEl.offsetHeight;
+
+    const timing = { duration: DURATION, easing: EASE };
+    const anims = [
+      next.animate([{ opacity: 0, transform: `translateX(${dir * SLIDE}px)` }, { opacity: 1, transform: 'none' }], timing),
+      prev.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: `translateX(${-dir * SLIDE}px)` }], timing),
+    ];
+    if (fromHeight !== toHeight) {
+      // Chrome resizes the popup window to follow the body, so this grows/shrinks it smoothly.
+      anims.push(panesEl.animate([{ height: `${fromHeight}px` }, { height: `${toHeight}px` }], timing));
+    }
+
+    let done = false;
+    settle = () => {
+      if (done) return;
+      done = true;
+      settle = null;
+      for (const a of anims) a.cancel();
+      prev.classList.remove('daq-leaving');
+      prev.hidden = true;
+    };
+    Promise.all(anims.map((a) => a.finished)).then(() => settle?.(), () => {});
   }
 
   document.body.classList.add('daq-scope');
-  document.body.append(tabBar, el('div', { class: 'daq-panes' }, [panes.queue, panes.skip]));
+  document.body.append(tabBar, panesEl);
   let startTab = 'queue';
   try {
     if (panes[localStorage.getItem('daq-tab')]) startTab = localStorage.getItem('daq-tab');
@@ -135,6 +171,8 @@
     /* default to the queue */
   }
   selectTab(startTab);
+  // Layout (and fonts) settle after first paint; re-place the underline without animating.
+  requestAnimationFrame(() => placeIndicator(false));
 
   // ---- state sync ----
   const [{ queue = [] }, { settings }] = await Promise.all([
@@ -196,7 +234,7 @@
       dot.style.background = cat.color;
       const row = el('div', { class: 'daq-cat' }, [
         dot,
-        el('div', { class: 'daq-cat-text' }, [el('div', { class: 'daq-cat-label', text: cat.label }), el('div', { class: 'daq-cat-desc', text: cat.desc })]),
+        el('div', { class: 'daq-cat-text' }, [el('div', { class: 'daq-cat-label', text: cat.label }), el('div', { class: 'daq-cat-desc', title: cat.desc, text: cat.desc })]),
         el('div', { class: 'daq-seg-ctl', role: 'radiogroup', 'aria-label': cat.label }, buttons),
       ]);
       return { cat, row, buttons };
@@ -210,7 +248,7 @@
       jumpDot,
       el('div', { class: 'daq-cat-text' }, [
         el('div', { class: 'daq-cat-label', text: 'Jump ahead' }),
-        el('div', { class: 'daq-cat-desc', text: 'Button to jump to the highlight or the most-replayed part' }),
+        el('div', { class: 'daq-cat-desc', title: 'Button to jump to the highlight or the most-replayed part', text: 'Button to jump to the highlight or the most-replayed part' }),
       ]),
       el('label', { class: 'daq-toggle' }, [jumpInput, el('span', { class: 'daq-switch' })]),
     ]);

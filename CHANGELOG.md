@@ -6,8 +6,11 @@
 - In fullscreen, the **Jump ahead** / **Skip** buttons overlapped YouTube's like, dislike, comment and share row. They (and the "Skipped" notice) now sit above YouTube's own bottom-corner overlays, whatever is showing.
 
 ### Changed
-- Popup tabs are now YouTube-style chips, and switching between **Queue** and **Skipping** slides and cross-fades instead of jumping.
-- The popup keeps a fixed height, so switching tabs no longer resizes it; the queue list uses all the available space.
+- Popup tabs restyled like YouTube's channel tabs: text tabs with an underline that slides to the selected one.
+- Switching between **Queue** and **Skipping** slides and cross-fades, and the popup height animates smoothly between the two.
+- The popup sizes to its content (compact when the queue is empty), up to 580px; past that only the queue list scrolls.
+- No more width jitter when switching tabs: the scrollbar's space is always reserved.
+- The Skipping tab is tighter and fits without scrolling; long descriptions are shortened, with the full text on hover.
 - The popup reopens on the tab you used last.
 
 ## 2.0.0
