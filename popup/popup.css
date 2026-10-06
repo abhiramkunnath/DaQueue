@@ -140,16 +140,21 @@ body {
   min-height: 0;
   max-height: none;
   overflow-y: auto;
-  scrollbar-gutter: stable;
 }
 
-/* Settings scroll inside their pane; the gutter is always reserved so width never jumps */
+/* Settings scroll inside their pane (only when they really overflow) */
 .daq-pane > .daq-settings {
   flex: 0 1 auto;
   min-height: 0;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-gutter: stable;
+}
+
+/* While a tab switch animates, the height is briefly too small for the incoming pane:
+   suppress scrolling so no scrollbar flashes (and widths don't shift) mid-transition. */
+.daq-switching .daq-pane > .daq-settings,
+.daq-switching .daq-list {
+  overflow: hidden;
 }
 
 /* ---------- Skipping settings ---------- */

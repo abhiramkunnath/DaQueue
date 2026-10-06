@@ -134,6 +134,7 @@
 
     const order = TABS.map(([t]) => t);
     const dir = Math.sign(order.indexOf(id) - order.indexOf(prevId));
+    panesEl.classList.add('daq-switching');
     const fromHeight = panesEl.offsetHeight;
     // Outgoing pane becomes an overlay; the incoming one now defines the layout.
     prev.classList.add('daq-leaving');
@@ -158,6 +159,7 @@
       for (const a of anims) a.cancel();
       prev.classList.remove('daq-leaving');
       prev.hidden = true;
+      panesEl.classList.remove('daq-switching');
     };
     Promise.all(anims.map((a) => a.finished)).then(() => settle?.(), () => {});
   }
