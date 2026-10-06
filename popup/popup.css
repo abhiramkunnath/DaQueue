@@ -28,34 +28,92 @@ html[dark] body {
   max-width: none;
 }
 
-/* ---------- Tabs: Queue | Skipping ---------- */
+/* ---------- Layout: fixed height, so switching tabs never resizes the popup ---------- */
+
+html,
+body {
+  height: 580px;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ---------- Tabs: YouTube-style chips ---------- */
 
 .daq-tabs {
+  flex: none;
   display: flex;
-  gap: 4px;
-  padding: 8px 12px 0;
-  background: var(--daq-chip);
+  gap: 8px;
+  padding: 12px 16px 4px;
+  background: var(--daq-bg);
   font-family: "Roboto", "Arial", sans-serif;
 }
 
 .daq-tab {
-  flex: 1;
   height: 32px;
+  padding: 0 12px;
   border: 0;
-  border-radius: 8px 8px 0 0;
-  background: transparent;
-  color: var(--daq-text-2);
-  font: 500 13px/1 "Roboto", "Arial", sans-serif;
+  border-radius: 8px;
+  background: var(--daq-chip);
+  color: var(--daq-text);
+  font: 500 14px/1 "Roboto", "Arial", sans-serif;
   cursor: pointer;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
 }
 
 .daq-tab:hover {
-  color: var(--daq-text);
+  background: var(--daq-chip-hover);
 }
 
 .daq-tab[aria-selected="true"] {
+  background: var(--daq-text);
+  color: var(--daq-bg);
+}
+
+.daq-tab:focus-visible {
+  outline: 2px solid var(--daq-accent);
+  outline-offset: 2px;
+}
+
+/* ---------- Panes: stacked in one box so they can slide/cross-fade ---------- */
+
+.daq-panes {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.daq-pane {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
   background: var(--daq-bg);
-  color: var(--daq-text);
+}
+
+/* Queue fills its pane; the list takes the remaining height */
+.daq-pane > #daqueue-panel.daq-popup {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.daq-popup .daq-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.daq-popup .daq-list {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
 }
 
 /* ---------- Skipping settings ---------- */

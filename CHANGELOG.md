@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.1
+
+### Fixed
+- In fullscreen, the **Jump ahead** / **Skip** buttons overlapped YouTube's like, dislike, comment and share row. They (and the "Skipped" notice) now sit above YouTube's own bottom-corner overlays, whatever is showing.
+
+### Changed
+- Popup tabs are now YouTube-style chips, and switching between **Queue** and **Skipping** slides and cross-fades instead of jumping.
+- The popup keeps a fixed height, so switching tabs no longer resizes it; the queue list uses all the available space.
+- The popup reopens on the tab you used last.
+
 ## 2.0.0
 
 ### Added

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "DaQueue",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Persistent, reorderable video queue for YouTube, plus sponsor and segment skipping.",
   "minimum_chrome_version": "111",
   "homepage_url": "https://github.com/abhiramkunnath/DaQueue",

@@ -73,22 +73,68 @@
       if (res) view.setPaused(res.paused);
     },
   });
-  // ---- tabs: Queue | Skipping ----
+  // ---- tabs: Queue | Skipping (YouTube-style chips, sliding crossfade) ----
   const skipUI = buildSkipSettings((skip) => send({ type: 'setSettings', patch: { skip } }));
+  const TABS = [['queue', 'Queue'], ['skip', 'Skipping']];
   const tabBar = el('div', { class: 'daq-tabs', role: 'tablist' });
-  const panes = { queue: view.el, skip: skipUI.el };
-  for (const [id, label] of [['queue', 'Queue'], ['skip', 'Skipping']]) {
+  const panes = {
+    queue: el('div', { class: 'daq-pane', role: 'tabpanel' }, view.el),
+    skip: el('div', { class: 'daq-pane', role: 'tabpanel' }, skipUI.el),
+  };
+  for (const [id, label] of TABS) {
     const tab = el('button', { class: 'daq-tab', type: 'button', role: 'tab', 'data-tab': id, text: label });
     tab.addEventListener('click', () => selectTab(id));
     tabBar.append(tab);
   }
+
+  const SLIDE = 28; // px
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let currentTab = null;
+
   function selectTab(id) {
+    if (id === currentTab) return;
+    const order = TABS.map(([t]) => t);
+    const dir = currentTab ? Math.sign(order.indexOf(id) - order.indexOf(currentTab)) : 0;
+    const prevId = currentTab;
+    currentTab = id;
+    try {
+      localStorage.setItem('daq-tab', id);
+    } catch {
+      /* storage unavailable: just don't remember the tab */
+    }
     for (const tab of tabBar.children) tab.setAttribute('aria-selected', String(tab.dataset.tab === id));
-    for (const [key, pane] of Object.entries(panes)) pane.hidden = key !== id;
+
+    const next = panes[id];
+    next.hidden = false;
+    next.style.pointerEvents = '';
+    for (const [key, pane] of Object.entries(panes)) if (key !== id && key !== prevId) pane.hidden = true;
+    if (!prevId) return;
+
+    const prev = panes[prevId];
+    if (reduceMotion) {
+      prev.hidden = true;
+      return;
+    }
+    // Both panes are absolutely positioned in the same box, so they can cross-fade in place.
+    const timing = { duration: 240, easing: 'cubic-bezier(0.2, 0, 0, 1)' };
+    next.animate([{ opacity: 0, transform: `translateX(${dir * SLIDE}px)` }, { opacity: 1, transform: 'none' }], timing);
+    prev.style.pointerEvents = 'none';
+    prev
+      .animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: `translateX(${-dir * SLIDE}px)` }], timing)
+      .finished.then(() => {
+        if (currentTab !== prevId) prev.hidden = true;
+      }, () => {});
   }
+
   document.body.classList.add('daq-scope');
-  document.body.append(tabBar, view.el, skipUI.el);
-  selectTab('queue');
+  document.body.append(tabBar, el('div', { class: 'daq-panes' }, [panes.queue, panes.skip]));
+  let startTab = 'queue';
+  try {
+    if (panes[localStorage.getItem('daq-tab')]) startTab = localStorage.getItem('daq-tab');
+  } catch {
+    /* default to the queue */
+  }
+  selectTab(startTab);
 
   // ---- state sync ----
   const [{ queue = [] }, { settings }] = await Promise.all([

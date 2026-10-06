@@ -17,6 +17,10 @@
   const SEL = {
     player: 'ytd-watch-flexy #movie_player',
     progress: '.ytp-progress-bar .ytp-progress-list, .ytp-progress-bar',
+    // YouTube overlays in the bottom corners (fullscreen like/dislike/comment row, product badges).
+    // Our buttons and notice are lifted above whatever of these is showing.
+    obstaclesRight: '.ytp-overlay-bottom-right, .ytp-fullscreen-quick-actions',
+    obstaclesLeft: '.ytp-overlay-bottom-left, .ytp-suggested-action-badge',
     // Elements the SponsorBlock extension injects; if present we don't skip or draw marks.
     sponsorBlock: '#previewbar, .sponsorSkipButton, #sponsorblock-skip-notice, .sponsorSkipObject, [id^="sponsorBlock"]',
   };
@@ -94,6 +98,25 @@
     }
     if (actionsEl.parentElement !== p) p.append(actionsEl, noticeEl);
     return true;
+  }
+
+  // Keep clear of YouTube's own bottom-corner overlays (they change with fullscreen and per video).
+  const OVERLAY_GAP = 12;
+  function layoutOverlay() {
+    const p = player();
+    if (!p || !actionsEl) return;
+    const pr = p.getBoundingClientRect();
+    const base = p.classList.contains('ytp-big-mode') ? 100 : 72; // above the control bar
+    const lift = (selector) => {
+      let bottom = base;
+      for (const node of p.querySelectorAll(selector)) {
+        const r = node.getBoundingClientRect();
+        if (r.width && r.height) bottom = Math.max(bottom, pr.bottom - r.top + OVERLAY_GAP);
+      }
+      return `${Math.round(bottom)}px`;
+    };
+    actionsEl.style.bottom = lift(SEL.obstaclesRight);
+    noticeEl.style.bottom = lift(SEL.obstaclesLeft);
   }
 
   function showSkip(seg) {
@@ -177,6 +200,7 @@
       showJump(null);
       return;
     }
+    layoutOverlay();
     const t = v.currentTime;
     let offer = null;
     for (const s of skippable()) {
@@ -284,6 +308,9 @@
     document.addEventListener(type, (e) => isWatchVideo(e.target) && renderMarkers(), true);
   }
   document.addEventListener('yt-navigate-finish', load);
+  // Fullscreen swaps in YouTube's quick-action row; re-place once its layout has settled.
+  document.addEventListener('fullscreenchange', () => setTimeout(layoutOverlay, 300));
+  window.addEventListener('resize', layoutOverlay);
 
   // Settings first, so a user who turned everything off never triggers a lookup.
   chrome.storage.local.get('settings').then(({ settings }) => {

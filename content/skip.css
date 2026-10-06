@@ -12,10 +12,7 @@
   pointer-events: none;
 }
 
-.ytp-big-mode .daq-player-actions,
-.ytp-big-mode .daq-skip-notice {
-  bottom: 100px;
-}
+/* bottom offsets are set by skip.js (layoutOverlay) to clear YouTube's own overlays */
 
 .daq-skip-btn {
   pointer-events: auto;
